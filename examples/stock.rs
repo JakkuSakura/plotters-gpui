@@ -110,16 +110,7 @@ impl PlottersChart for StockChart {
 
         chart
             .draw_series(self.data.iter().map(|x| {
-                CandleStick::new(
-                    parse_time(x.0),
-                    x.1,
-                    x.2,
-                    x.3,
-                    x.4,
-                    GREEN.filled(),
-                    RED,
-                    15,
-                )
+                CandleStick::new(parse_time(x.0), x.1, x.2, x.3, x.4, GREEN.filled(), RED, 15)
             }))
             .unwrap();
 
