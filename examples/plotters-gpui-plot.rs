@@ -65,12 +65,13 @@ impl Animation {
         line
     }
 }
+
 impl PlottersChart for Animation {
     fn plot(
         &mut self,
         root: &DrawingArea<GpuiBackend, Shift>,
     ) -> Result<(), plotters_gpui::DrawingErrorKind> {
-        let mut chart = ChartBuilder::on(&root)
+        let mut chart = ChartBuilder::on(root)
             .caption("Animation", ("sans-serif", 24).into_font())
             .margin(5)
             .x_label_area_size(30)
