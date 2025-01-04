@@ -17,6 +17,9 @@ tracing = "0.1"
 [dev-dependencies]
 chrono = "0.4"
 anyhow = "1"
+rand = "0.8.3"
+rand_distr = "0.4.0"
+rand_xorshift = "0.3.0"
 
 [features]
 default = ["plotters"]
