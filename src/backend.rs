@@ -51,9 +51,10 @@ impl DrawingBackend for GpuiBackend<'_, '_> {
         let mut line = Line::between_points(
             coord_to_point(self.bounds.origin, from),
             coord_to_point(self.bounds.origin, to),
-        );
-        line.color = color_to_hsla(style.color());
-        line.width = px(style.stroke_width() as _);
+        )
+        .width(px(style.stroke_width() as _))
+        .color(color_to_hsla(style.color()));
+
         line.render_pixels(self.cx);
         Ok(())
     }
@@ -68,6 +69,7 @@ impl DrawingBackend for GpuiBackend<'_, '_> {
         let upper_left = coord_to_point(self.bounds.origin, upper_left);
         let bottom_right = coord_to_point(self.bounds.origin, bottom_right);
         let color = color_to_hsla(style.color());
+
         if fill {
             let mut path = gpui::Path::new(upper_left);
             path.line_to(point(upper_left.x, bottom_right.y));
@@ -82,9 +84,9 @@ impl DrawingBackend for GpuiBackend<'_, '_> {
                 (bottom_right, point(upper_left.x, bottom_right.y)),
                 (point(upper_left.x, bottom_right.y), upper_left),
             ] {
-                let mut line = Line::between_points(p1, p2);
-                line.color = color;
-                line.render_pixels(self.cx);
+                Line::between_points(p1, p2)
+                    .color(color)
+                    .render_pixels(self.cx);
             }
         }
 
