@@ -57,12 +57,9 @@ impl Line {
             return;
         };
 
-        let dx = last.x.0 - first.x.0;
-        let dy = last.y.0 - first.y.0;
-        let length = (dx * dx + dy * dy).sqrt().max(1.0);
-        let nx = -dy / length;
-        let ny = dx / length;
-        let shift = point(width * nx, width * ny);
+        let mut angle = f32::atan2(first.y.0 - last.y.0, first.x.0 - last.x.0);
+        angle += std::f32::consts::FRAC_PI_2;
+        let shift = point(width * f32::cos(angle), width * f32::sin(angle));
 
         let mut reversed_points = vec![first + shift];
         let mut path = Path::new(first);
