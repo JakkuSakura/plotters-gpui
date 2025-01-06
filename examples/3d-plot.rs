@@ -1,12 +1,10 @@
 use gpui::{div, prelude::*, App, AppContext, View, ViewContext, WindowContext, WindowOptions};
 use parking_lot::RwLock;
 use plotters::coord::Shift;
+use plotters::drawing::DrawingArea;
 use plotters::prelude::*;
 use plotters_gpui::backend::GpuiBackend;
-use plotters_gpui::element::*;
-use rand::SeedableRng as _;
-use rand_distr::{Distribution as _, Normal};
-use rand_xorshift::XorShiftRng;
+use plotters_gpui::element::{PlottersChart, PlottersDrawAreaModel, PlottersDrawAreaViewer};
 use std::sync::Arc;
 
 struct MainViewer {
@@ -34,56 +32,63 @@ impl Render for MainViewer {
     }
 }
 
-struct AreaChart {
-    data: Vec<f64>,
-}
-
-impl AreaChart {
-    fn new() -> Self {
-        let data: Vec<_> = {
-            let norm_dist = Normal::new(500.0, 100.0).unwrap();
-            let mut x_rand = XorShiftRng::from_seed(*b"MyFragileSeed123");
-            let x_iter = norm_dist.sample_iter(&mut x_rand);
-            x_iter
-                .filter(|x| *x < 1500.0)
-                .take(100)
-                .zip(0..)
-                .map(|(x, b)| x + (b as f64).powf(1.2))
-                .collect()
-        };
-
-        Self { data }
-    }
-}
-
-impl PlottersChart for AreaChart {
+struct MyChart;
+impl PlottersChart for MyChart {
     fn plot(
         &mut self,
         root: &DrawingArea<GpuiBackend, Shift>,
     ) -> Result<(), plotters_gpui::DrawingErrorKind> {
+        let x_axis = (-3.0..3.0).step(0.1);
+        let z_axis = (-3.0..3.0).step(0.1);
+
         let mut chart = ChartBuilder::on(root)
-            .set_label_area_size(LabelAreaPosition::Left, 60)
-            .set_label_area_size(LabelAreaPosition::Bottom, 60)
-            .caption("Area Chart Demo", ("sans-serif", 40))
-            .build_cartesian_2d(0..(self.data.len() - 1), 0.0..1500.0)
+            .caption("3D Plot Test", ("sans", 20))
+            .build_cartesian_3d(x_axis.clone(), -3.0..3.0, z_axis.clone())
             .unwrap();
 
+        chart.with_projection(|mut pb| {
+            pb.yaw = 0.5;
+            pb.scale = 0.9;
+            pb.into_matrix()
+        });
+
         chart
-            .configure_mesh()
-            .disable_x_mesh()
-            .disable_y_mesh()
+            .configure_axes()
+            .light_grid_style(BLACK.mix(0.15))
+            .max_light_lines(3)
             .draw()
             .unwrap();
 
         chart
             .draw_series(
-                AreaSeries::new(
-                    (0..).zip(self.data.iter()).map(|(x, y)| (x, *y)),
-                    0.0,
-                    RED.mix(0.2),
+                SurfaceSeries::xoz(
+                    (-30..30).map(|f| f as f64 / 10.0),
+                    (-30..30).map(|f| f as f64 / 10.0),
+                    |x, z| (x * x + z * z).cos(),
                 )
-                .border_style(RED),
+                .style(BLUE.mix(0.2).filled()),
             )
+            .unwrap()
+            .label("Surface")
+            .legend(|(x, y)| {
+                Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled())
+            });
+
+        chart
+            .draw_series(LineSeries::new(
+                (-100..100)
+                    .map(|y| y as f64 / 40.0)
+                    .map(|y| ((y * 10.0).sin(), y, (y * 10.0).cos())),
+                &BLACK,
+            ))
+            .unwrap()
+            .label("Line")
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLACK));
+
+        chart
+            .configure_series_labels()
+            .border_style(BLACK)
+            .draw()
             .unwrap();
 
         Ok(())
@@ -91,7 +96,7 @@ impl PlottersChart for AreaChart {
 }
 
 fn main_viewer(cx: &mut WindowContext) -> MainViewer {
-    let figure = PlottersDrawAreaModel::new(Box::new(AreaChart::new()));
+    let figure = PlottersDrawAreaModel::new(Box::new(MyChart));
     MainViewer::new(Arc::new(RwLock::new(figure)), cx)
 }
 
