@@ -1,18 +1,14 @@
-use chrono::offset::{Local, TimeZone};
-use chrono::{Date, Duration};
+use chrono::Duration;
 use gpui::{div, prelude::*, App, AppContext, View, ViewContext, WindowContext, WindowOptions};
 use parking_lot::RwLock;
 use plotters::coord::Shift;
 use plotters::prelude::*;
 use plotters_gpui::backend::GpuiBackend;
 use plotters_gpui::element::*;
-use std::sync::Arc;
+use std::rc::Rc;
 
-fn parse_time(t: &str) -> Date<Local> {
-    Local
-        .datetime_from_str(&format!("{} 0:0", t), "%Y-%m-%d %H:%M")
-        .unwrap()
-        .date()
+fn parse_time(t: &str) -> chrono::NaiveDate {
+    chrono::NaiveDate::parse_from_str(t, "%Y-%m-%d").unwrap()
 }
 
 struct MainViewer {
@@ -21,7 +17,7 @@ struct MainViewer {
 }
 
 impl MainViewer {
-    fn new(model: Arc<RwLock<PlottersDrawAreaModel>>, cx: &mut WindowContext) -> Self {
+    fn new(model: Rc<RwLock<PlottersDrawAreaModel>>, cx: &mut WindowContext) -> Self {
         let figure = PlottersDrawAreaViewer::with_shared_model(model);
 
         Self {
@@ -120,7 +116,7 @@ impl PlottersChart for StockChart {
 
 fn main_viewer(cx: &mut WindowContext) -> MainViewer {
     let figure = PlottersDrawAreaModel::new(Box::new(StockChart::new()));
-    let mut main_viewer = MainViewer::new(Arc::new(RwLock::new(figure)), cx);
+    let mut main_viewer = MainViewer::new(Rc::new(RwLock::new(figure)), cx);
     main_viewer.animation = true;
 
     main_viewer

@@ -5,14 +5,14 @@ use plotters::drawing::DrawingArea;
 use plotters::prelude::*;
 use plotters_gpui::backend::GpuiBackend;
 use plotters_gpui::element::{PlottersChart, PlottersDrawAreaModel, PlottersDrawAreaViewer};
-use std::sync::Arc;
+use std::rc::Rc;
 
 struct MainViewer {
     figure: View<PlottersDrawAreaViewer>,
 }
 
 impl MainViewer {
-    fn new(model: Arc<RwLock<PlottersDrawAreaModel>>, cx: &mut WindowContext) -> Self {
+    fn new(model: Rc<RwLock<PlottersDrawAreaModel>>, cx: &mut WindowContext) -> Self {
         let figure = PlottersDrawAreaViewer::with_shared_model(model);
 
         Self {
@@ -97,7 +97,7 @@ impl PlottersChart for MyChart {
 
 fn main_viewer(cx: &mut WindowContext) -> MainViewer {
     let figure = PlottersDrawAreaModel::new(Box::new(MyChart));
-    MainViewer::new(Arc::new(RwLock::new(figure)), cx)
+    MainViewer::new(Rc::new(RwLock::new(figure)), cx)
 }
 
 fn main() {

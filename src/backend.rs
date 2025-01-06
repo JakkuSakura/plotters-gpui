@@ -10,13 +10,15 @@ pub struct GpuiBackend<'a, 'b> {
     bounds: Bounds<Pixels>,
     cx: &'a mut gpui::WindowContext<'b>,
 }
+
 impl<'a, 'b> GpuiBackend<'a, 'b> {
     /// Create a new embedded backend
     pub fn new(bounds: Bounds<Pixels>, cx: &'a mut gpui::WindowContext<'b>) -> Self {
         Self { bounds, cx }
     }
 }
-impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
+
+impl DrawingBackend for GpuiBackend<'_, '_> {
     type ErrorType = crate::Error;
 
     fn get_size(&self) -> (u32, u32) {
@@ -39,6 +41,7 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
     ) -> Result<(), DrawingErrorKind<Self::ErrorType>> {
         self.draw_path([point, point], &color)
     }
+
     fn draw_line<S: BackendStyle>(
         &mut self,
         from: BackendCoord,
@@ -46,14 +49,15 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
         style: &S,
     ) -> Result<(), DrawingErrorKind<Self::ErrorType>> {
         let mut line = Line::between_points(
-            coord_to_point(self.bounds.origin, from).into(),
-            coord_to_point(self.bounds.origin, to).into(),
+            coord_to_point(self.bounds.origin, from),
+            coord_to_point(self.bounds.origin, to),
         );
         line.color = color_to_hsla(style.color());
         line.width = px(style.stroke_width() as _);
         line.render_pixels(self.cx);
         Ok(())
     }
+
     fn draw_rect<S: BackendStyle>(
         &mut self,
         upper_left: BackendCoord,
@@ -78,7 +82,7 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
                 (bottom_right, point(upper_left.x, bottom_right.y)),
                 (point(upper_left.x, bottom_right.y), upper_left),
             ] {
-                let mut line = Line::between_points(p1.into(), p2.into());
+                let mut line = Line::between_points(p1, p2);
                 line.color = color;
                 line.render_pixels(self.cx);
             }
@@ -86,6 +90,7 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
 
         Ok(())
     }
+
     // path in plotters does not close the shape
     fn draw_path<S: BackendStyle, I: IntoIterator<Item = BackendCoord>>(
         &mut self,
@@ -95,7 +100,7 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
         let iter = path.into_iter();
         let mut points = Vec::with_capacity(iter.size_hint().0 * 2);
         for point in iter {
-            points.push(coord_to_point(self.bounds.origin, point).into());
+            points.push(coord_to_point(self.bounds.origin, point));
         }
 
         if points.is_empty() {
@@ -110,6 +115,7 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
 
         Ok(())
     }
+
     fn fill_polygon<S: BackendStyle, I: IntoIterator<Item = BackendCoord>>(
         &mut self,
         vert: I,
@@ -128,6 +134,7 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
         self.cx.paint_path(path, color);
         Ok(())
     }
+
     fn draw_text<TStyle: BackendTextStyle>(
         &mut self,
         text: &str,
@@ -136,16 +143,19 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
     ) -> Result<(), DrawingErrorKind<Self::ErrorType>> {
         let color = color_to_hsla(style.color());
         let point = coord_to_point(self.bounds.origin, pos);
-        let shared_string = SharedString::from(text.to_string());
+        let font = self.cx.text_style().font();
+        let len = text.len();
         let size = px(style.size() as _);
-        let ts = self.cx.text_system();
-        let shaped_line = ts
+
+        let shaped_line = self
+            .cx
+            .text_system()
             .shape_line(
-                shared_string,
+                SharedString::from(text.to_string()),
                 size,
                 &[TextRun {
-                    len: text.len(),
-                    font: self.cx.text_style().font(),
+                    len,
+                    font,
                     color,
                     background_color: None,
                     underline: None,
@@ -159,6 +169,7 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
                 err.to_string(),
             ))
         })?;
+
         Ok(())
     }
 }

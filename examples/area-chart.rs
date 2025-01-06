@@ -7,14 +7,14 @@ use plotters_gpui::element::*;
 use rand::SeedableRng as _;
 use rand_distr::{Distribution as _, Normal};
 use rand_xorshift::XorShiftRng;
-use std::sync::Arc;
+use std::rc::Rc;
 
 struct MainViewer {
     figure: View<PlottersDrawAreaViewer>,
 }
 
 impl MainViewer {
-    fn new(model: Arc<RwLock<PlottersDrawAreaModel>>, cx: &mut WindowContext) -> Self {
+    fn new(model: Rc<RwLock<PlottersDrawAreaModel>>, cx: &mut WindowContext) -> Self {
         let figure = PlottersDrawAreaViewer::with_shared_model(model);
 
         Self {
@@ -92,7 +92,7 @@ impl PlottersChart for AreaChart {
 
 fn main_viewer(cx: &mut WindowContext) -> MainViewer {
     let figure = PlottersDrawAreaModel::new(Box::new(AreaChart::new()));
-    MainViewer::new(Arc::new(RwLock::new(figure)), cx)
+    MainViewer::new(Rc::new(RwLock::new(figure)), cx)
 }
 
 fn main() {

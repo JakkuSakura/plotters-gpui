@@ -8,6 +8,12 @@ pub struct Line {
     pub color: Hsla,
 }
 
+impl Default for Line {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Line {
     pub fn new() -> Self {
         Self {
@@ -16,6 +22,7 @@ impl Line {
             color: gpui::black(),
         }
     }
+
     pub fn between_points(start: Point<Pixels>, end: Point<Pixels>) -> Self {
         let mut line = Self::new();
         line.add_point(start);

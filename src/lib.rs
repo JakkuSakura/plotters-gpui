@@ -1,7 +1,7 @@
 pub mod backend;
 #[cfg(feature = "plotters")]
 pub mod element;
-mod line;
+pub mod line;
 mod utils;
 
 pub type Error = std::io::Error;

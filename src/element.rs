@@ -4,13 +4,14 @@ use parking_lot::RwLock;
 use plotters::coord::Shift;
 use plotters::drawing::{DrawingArea, IntoDrawingArea};
 use plotters::prelude::*;
-use std::sync::Arc;
+use std::rc::Rc;
 use tracing::error;
 
 pub struct PlottersDrawAreaModel {
     pub backend_color: RGBColor,
     pub chart: Box<dyn PlottersChart>,
 }
+
 impl PlottersDrawAreaModel {
     pub fn new(chart: Box<dyn PlottersChart>) -> Self {
         Self {
@@ -21,16 +22,19 @@ impl PlottersDrawAreaModel {
 }
 #[derive(Clone)]
 pub struct PlottersDrawAreaViewer {
-    model: Arc<RwLock<PlottersDrawAreaModel>>,
+    model: Rc<RwLock<PlottersDrawAreaModel>>,
 }
+
 impl PlottersDrawAreaViewer {
     pub fn new(model: PlottersDrawAreaModel) -> Self {
-        let model = Arc::new(RwLock::new(model));
+        let model = Rc::new(RwLock::new(model));
         Self { model }
     }
-    pub fn with_shared_model(model: Arc<RwLock<PlottersDrawAreaModel>>) -> Self {
+
+    pub fn with_shared_model(model: Rc<RwLock<PlottersDrawAreaModel>>) -> Self {
         Self { model }
     }
+
     pub fn plot(
         &self,
         bounds: Bounds<Pixels>,
@@ -47,6 +51,7 @@ impl PlottersDrawAreaViewer {
         Ok(())
     }
 }
+
 impl Render for PlottersDrawAreaViewer {
     fn render(&mut self, _cx: &mut ViewContext<Self>) -> impl IntoElement {
         let this = self.clone();
@@ -61,17 +66,20 @@ impl Render for PlottersDrawAreaViewer {
         .size_full()
     }
 }
+
 pub trait PlottersChart {
     fn plot(
         &mut self,
         area: &DrawingArea<GpuiBackend, Shift>,
     ) -> Result<(), crate::DrawingErrorKind>;
 }
+
 impl PlottersChart for () {
     fn plot(&mut self, _: &DrawingArea<GpuiBackend, Shift>) -> Result<(), crate::DrawingErrorKind> {
         Ok(())
     }
 }
+
 impl<F> PlottersChart for F
 where
     F: FnMut(&DrawingArea<GpuiBackend, Shift>) -> Result<(), crate::DrawingErrorKind>,
@@ -83,6 +91,7 @@ where
         self(area)
     }
 }
+
 macro_rules! impl_plotters_char_for_tuple {
     ($($name:ident),*) => {
         #[allow(non_snake_case)]
@@ -98,6 +107,7 @@ macro_rules! impl_plotters_char_for_tuple {
         }
     };
 }
+
 macro_rules! impl_plotters_char_for_all_tuples {
     ($first:ident, $($rest:ident),*) => {
         impl_plotters_char_for_tuple!($first $(, $rest)*);
