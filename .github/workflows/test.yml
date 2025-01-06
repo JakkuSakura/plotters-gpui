@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install system dependencies
-        run: script/bootstrap
       - name: Setup | Cache Cargo
         uses: actions/cache@v3.0.11
         with:
