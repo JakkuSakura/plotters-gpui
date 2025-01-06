@@ -117,7 +117,7 @@ impl PlottersChart for StockChart {
                     x.3,
                     x.4,
                     GREEN.filled(),
-                    RED.filled(),
+                    RED,
                     15,
                 )
             }))
