@@ -78,7 +78,9 @@ impl<'a, 'b> DrawingBackend for GpuiBackend<'a, 'b> {
                 (bottom_right, point(upper_left.x, bottom_right.y)),
                 (point(upper_left.x, bottom_right.y), upper_left),
             ] {
-                Line::between_points(p1.into(), p2.into()).render_pixels(self.cx);
+                let mut line = Line::between_points(p1.into(), p2.into());
+                line.color = color;
+                line.render_pixels(self.cx);
             }
         }
 
