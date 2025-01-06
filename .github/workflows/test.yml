@@ -23,7 +23,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ubuntu-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: macos-test-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Lint
         run: |
           cargo clippy -- --deny warnings
