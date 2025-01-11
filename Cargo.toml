@@ -9,10 +9,12 @@ license = "MIT"
 
 [dependencies]
 plotters-backend = "0.3.7"
-gpui = { git = "https://github.com/zed-industries/zed" }
+gpui = { git = "https://github.com/huacnlee/zed", branch = "add-move-to" }
 parking_lot = "0.12.3"
 plotters = { version = "0.3.7", optional = true }
 tracing = "0.1"
+tiny-skia = "0.11.4"
+tiny-skia-path = "0.11.4"
 
 [dev-dependencies]
 chrono = "0.4"

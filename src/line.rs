@@ -1,4 +1,4 @@
-use gpui::{point, Hsla, Path, Pixels, Point, WindowContext};
+use gpui::{point, px, Hsla, Path, Pixels, Point, WindowContext};
 use tracing::warn;
 
 #[derive(Clone, Debug)]
@@ -49,30 +49,51 @@ impl Line {
             warn!("Line must have at least 1 points to render");
             return;
         }
-
-        let width = self.width;
-
-        let (Some(first), Some(last)) = (self.points.first().copied(), self.points.last().copied())
-        else {
+      
+        let stroke = tiny_skia::Stroke {
+            width: self.width.0,
+            ..Default::default()
+        };
+        let mut builder = tiny_skia::PathBuilder::new();
+        let Some(first_p) = self.points.first() else {
             return;
         };
 
-        let mut angle = f32::atan2(first.y.0 - last.y.0, first.x.0 - last.x.0);
-        angle += std::f32::consts::FRAC_PI_2;
-        let shift = point(width * f32::cos(angle), width * f32::sin(angle));
 
-        let mut reversed_points = vec![first + shift];
-        let mut path = Path::new(first);
-        for &p in &self.points[1..] {
-            path.line_to(p);
-            reversed_points.push(p + shift);
+        builder.move_to(first_p.x.0, first_p.y.0);
+        for p in self.points.iter().skip(1) {
+            builder.line_to(p.x.0, p.y.0);
         }
-
-        // now do the reverse to close the path
-        for p in reversed_points.into_iter().rev() {
-            path.line_to(p);
-        }
-
+        let Some(path) = stroke_path(builder, &stroke, cx) else {
+            return;
+        };
         cx.paint_path(path, self.color);
     }
+}
+
+/// Build tiny-skia PathBuilder into a Path with stroke
+fn stroke_path(
+    builder: tiny_skia::PathBuilder,
+    stroke: &tiny_skia::Stroke,
+    cx: &WindowContext,
+) -> Option<Path<Pixels>> {
+    let skia_path = builder.finish()?;
+    let skia_path = skia_path.stroke(stroke, cx.scale_factor())?;
+    let first_p = skia_path.points().first()?;
+
+    let mut path = Path::new(point(px(first_p.x), px(first_p.y)));
+    for i in 1..skia_path.len() - 1 {
+        let verb = skia_path.verbs()[i];
+        let Some(p) = skia_path.points().get(i) else {
+            continue;
+        };
+
+        match verb {
+            tiny_skia_path::PathVerb::Move => path.move_to(point(px(p.x), px(p.y))),
+            tiny_skia_path::PathVerb::Line => path.line_to(point(px(p.x), px(p.y))),
+            _ => {}
+        }
+    }
+
+    Some(path)
 }
