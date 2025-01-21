@@ -1,4 +1,4 @@
-use gpui::{point, Hsla, Path, Pixels, Point, Window};
+use gpui::{px, Hsla, PathBuilder, Pixels, Point, Window};
 use tracing::warn;
 
 #[derive(Clone, Debug)]
@@ -50,29 +50,18 @@ impl Line {
             return;
         }
 
-        let width = self.width;
-
-        let (Some(first), Some(last)) = (self.points.first().copied(), self.points.last().copied())
-        else {
+        let mut builder = PathBuilder::stroke(px(self.width.0));
+        let Some(first_p) = self.points.first() else {
             return;
         };
 
-        let mut angle = f32::atan2(first.y.0 - last.y.0, first.x.0 - last.x.0);
-        angle += std::f32::consts::FRAC_PI_2;
-        let shift = point(width * f32::cos(angle), width * f32::sin(angle));
-
-        let mut reversed_points = vec![first + shift];
-        let mut path = Path::new(first);
-        for &p in &self.points[1..] {
-            path.line_to(p);
-            reversed_points.push(p + shift);
+        builder.move_to(*first_p);
+        for p in self.points.iter().skip(1) {
+            builder.line_to(*p);
         }
 
-        // now do the reverse to close the path
-        for p in reversed_points.into_iter().rev() {
-            path.line_to(p);
+        if let Ok(path) = builder.build() {
+            window.paint_path(path, self.color);
         }
-
-        window.paint_path(path, self.color);
     }
 }

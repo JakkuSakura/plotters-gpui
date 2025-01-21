@@ -72,11 +72,19 @@ impl DrawingBackend for GpuiBackend<'_> {
         let color = color_to_hsla(style.color());
 
         if fill {
-            let mut path = gpui::Path::new(upper_left);
-            path.line_to(point(upper_left.x, bottom_right.y));
-            path.line_to(bottom_right);
-            path.line_to(point(bottom_right.x, upper_left.y));
-            path.line_to(upper_left);
+            let mut builder = gpui::PathBuilder::fill();
+            builder.move_to(upper_left);
+            builder.line_to(point(upper_left.x, bottom_right.y));
+            builder.line_to(bottom_right);
+            builder.line_to(point(bottom_right.x, upper_left.y));
+            builder.line_to(upper_left);
+            let path = builder.build().map_err(|err| {
+                DrawingErrorKind::DrawingError(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    err.to_string(),
+                ))
+            })?;
+
             self.window.paint_path(path, color);
         } else {
             for (p1, p2) in [
@@ -129,10 +137,20 @@ impl DrawingBackend for GpuiBackend<'_> {
             Some(start) => start,
             None => return Ok(()),
         };
-        let mut path = gpui::Path::new(coord_to_point(self.bounds.origin, start));
+
+        let mut builder = gpui::PathBuilder::fill();
+        builder.move_to(coord_to_point(self.bounds.origin, start));
         for point in iter {
-            path.line_to(coord_to_point(self.bounds.origin, point));
+            builder.line_to(coord_to_point(self.bounds.origin, point));
         }
+
+        let path = builder.build().map_err(|err| {
+            DrawingErrorKind::DrawingError(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                err.to_string(),
+            ))
+        })?;
+
         let color = color_to_hsla(style.color());
         self.window.paint_path(path, color);
         Ok(())
