@@ -1,5 +1,5 @@
 use crate::backend::GpuiBackend;
-use gpui::{canvas, Bounds, IntoElement, Pixels, Render, Styled, ViewContext, WindowContext};
+use gpui::{canvas, Bounds, IntoElement, Pixels, Render, Styled};
 use parking_lot::RwLock;
 use plotters::coord::Shift;
 use plotters::drawing::{DrawingArea, IntoDrawingArea};
@@ -38,10 +38,11 @@ impl PlottersDrawAreaViewer {
     pub fn plot(
         &self,
         bounds: Bounds<Pixels>,
-        cx: &mut WindowContext,
+        cx: &mut gpui::Window,
+        app: &mut gpui::App,
     ) -> Result<(), DrawingAreaErrorKind<crate::Error>> {
         let mut model = self.model.write();
-        let root = GpuiBackend::new(bounds, cx).into_drawing_area();
+        let root = GpuiBackend::new(bounds, cx, app).into_drawing_area();
         root.fill(&model.backend_color)?;
         model
             .chart
@@ -53,12 +54,16 @@ impl PlottersDrawAreaViewer {
 }
 
 impl Render for PlottersDrawAreaViewer {
-    fn render(&mut self, _cx: &mut ViewContext<Self>) -> impl IntoElement {
+    fn render(
+        &mut self,
+        _window: &mut gpui::Window,
+        _cx: &mut gpui::Context<Self>,
+    ) -> impl IntoElement {
         let this = self.clone();
         canvas(
-            |_, _| {},
-            move |bounds, _, cx| {
-                if let Err(err) = this.plot(bounds, cx) {
+            |_, _, _| {},
+            move |bounds, _, window, cx| {
+                if let Err(err) = this.plot(bounds, window, cx) {
                     error!("failed to plot: {}", err);
                 }
             },

@@ -1,4 +1,4 @@
-use gpui::{div, prelude::*, App, AppContext, View, ViewContext, WindowContext, WindowOptions};
+use gpui::{div, prelude::*, AppContext, WindowOptions};
 use parking_lot::RwLock;
 use plotters::coord::Shift;
 use plotters::drawing::DrawingArea;
@@ -11,28 +11,31 @@ use std::time::SystemTime;
 use sysinfo::{Pid, ProcessesToUpdate, System};
 
 struct MainViewer {
-    figure: View<PlottersDrawAreaViewer>,
+    figure: gpui::Entity<PlottersDrawAreaViewer>,
     animation: bool,
 }
 
 impl MainViewer {
-    fn new(model: Rc<RwLock<PlottersDrawAreaModel>>, cx: &mut WindowContext) -> Self {
+    fn new(model: Rc<RwLock<PlottersDrawAreaModel>>, app: &mut gpui::App) -> Self {
         let figure = PlottersDrawAreaViewer::with_shared_model(model);
 
         Self {
-            figure: cx.new_view(move |_| figure),
+            figure: app.new(move |_| figure),
             animation: false,
         }
     }
 }
 
 impl Render for MainViewer {
-    fn render(&mut self, cx: &mut ViewContext<Self>) -> impl IntoElement {
-        cx.defer(move |this, cx| {
-            if this.animation {
-                cx.notify();
-            }
-        });
+    fn render(
+        &mut self,
+        _window: &mut gpui::Window,
+        cx: &mut gpui::Context<Self>,
+    ) -> impl IntoElement {
+        if self.animation {
+            let id = cx.entity_id();
+            cx.defer(move |app| app.notify(id));
+        }
         div()
             .size_full()
             .flex_col()
@@ -113,27 +116,27 @@ impl PlottersChart for CpuUsage {
     }
 }
 
-fn main_viewer(cx: &mut WindowContext) -> MainViewer {
+fn main_viewer(app: &mut gpui::App) -> MainViewer {
     let figure = PlottersDrawAreaModel::new(Box::new(CpuUsage::new()));
-    let mut main_viewer = MainViewer::new(Rc::new(RwLock::new(figure)), cx);
+    let mut main_viewer = MainViewer::new(Rc::new(RwLock::new(figure)), app);
     main_viewer.animation = true;
 
     main_viewer
 }
 
 fn main() {
-    App::new().run(move |cx: &mut AppContext| {
-        cx.open_window(
+    gpui::Application::new().run(move |app: &mut gpui::App| {
+        app.open_window(
             WindowOptions {
                 focus: true,
                 ..Default::default()
             },
-            move |cx| {
-                let view = main_viewer(cx);
-                cx.new_view(move |_| view)
+            move |_window, app| {
+                let view = main_viewer(app);
+                app.new(|_| view)
             },
         )
         .unwrap();
-        cx.activate(true);
+        app.activate(true);
     });
 }

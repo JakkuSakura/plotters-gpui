@@ -8,13 +8,14 @@ use plotters_backend::{
 /// The embedded backend for plotters in gpui
 pub struct GpuiBackend<'a, 'b> {
     bounds: Bounds<Pixels>,
-    cx: &'a mut gpui::WindowContext<'b>,
+    cx: &'a mut gpui::Window,
+    app: &'b mut gpui::App,
 }
 
 impl<'a, 'b> GpuiBackend<'a, 'b> {
     /// Create a new embedded backend
-    pub fn new(bounds: Bounds<Pixels>, cx: &'a mut gpui::WindowContext<'b>) -> Self {
-        Self { bounds, cx }
+    pub fn new(bounds: Bounds<Pixels>, cx: &'a mut gpui::Window, app: &'b mut gpui::App) -> Self {
+        Self { bounds, cx, app }
     }
 }
 
@@ -165,12 +166,14 @@ impl DrawingBackend for GpuiBackend<'_, '_> {
                 }],
             )
             .map_err(|err| DrawingErrorKind::FontError(err.to_string().into()))?;
-        shaped_line.paint(point, size, self.cx).map_err(|err| {
-            DrawingErrorKind::DrawingError(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                err.to_string(),
-            ))
-        })?;
+        shaped_line
+            .paint(point, size, self.cx, self.app)
+            .map_err(|err| {
+                DrawingErrorKind::DrawingError(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    err.to_string(),
+                ))
+            })?;
 
         Ok(())
     }

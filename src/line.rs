@@ -1,4 +1,4 @@
-use gpui::{point, Hsla, Path, Pixels, Point, WindowContext};
+use gpui::{point, Hsla, Path, Pixels, Point, Window};
 use tracing::warn;
 
 #[derive(Clone, Debug)]
@@ -44,7 +44,7 @@ impl Line {
         self.points.push(point);
     }
 
-    pub fn render_pixels(&mut self, cx: &mut WindowContext) {
+    pub fn render_pixels(&mut self, cx: &mut Window) {
         if self.points.is_empty() {
             warn!("Line must have at least 1 points to render");
             return;
