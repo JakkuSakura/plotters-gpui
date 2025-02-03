@@ -2,6 +2,7 @@ use crate::line::Line;
 use crate::utils::{color_to_hsla, coord_to_point};
 use gpui::{point, px, App, Bounds, Pixels, SharedString, TextRun, Window};
 use plotters_backend::{
+    text_anchor::{HPos, VPos},
     BackendColor, BackendCoord, BackendStyle, BackendTextStyle, DrawingBackend, DrawingErrorKind,
 };
 
@@ -144,8 +145,25 @@ impl DrawingBackend for GpuiBackend<'_> {
         style: &TStyle,
         pos: BackendCoord,
     ) -> Result<(), DrawingErrorKind<Self::ErrorType>> {
+        let layout = style
+            .layout_box(text)
+            .map_err(|e| DrawingErrorKind::FontError(Box::new(e)))?;
+        let ((min_x, min_y), (max_x, max_y)) = layout;
+        let width = max_x - min_x;
+        let height = max_y - min_y;
+        let dx = match style.anchor().h_pos {
+            HPos::Left => 0,
+            HPos::Right => -width,
+            HPos::Center => -width / 2,
+        };
+        let dy = match style.anchor().v_pos {
+            VPos::Top => 0,
+            VPos::Center => -height / 2,
+            VPos::Bottom => -height,
+        };
         let color = color_to_hsla(style.color());
-        let point = coord_to_point(self.bounds.origin, pos);
+        let point =
+            coord_to_point(self.bounds.origin, pos) + gpui::point(px(dx as _), px(dy as _)) * 1.24;
         let font = self.window.text_style().font();
         let len = text.len();
         let size = px(style.size() as _);
