@@ -33,8 +33,13 @@ provides interactivity and more stuff on top of plotters-gpui
 
 ## Show cases
 
-<img width="300" src="https://github.com/user-attachments/assets/58104fbd-35e7-40a1-be8d-ad18945acacb" /> <img width="300" src="https://github.com/user-attachments/assets/86c95b28-74db-44d3-8599-910d24adee55" />
-<img width="300" src="https://github.com/user-attachments/assets/f599b6a8-946d-492a-a423-c2805fb22c4c" /> <img width="300" src="https://github.com/user-attachments/assets/066f3f92-9671-48cf-8383-9a55d1bf0ef7" /> <img width="300" src="https://github.com/user-attachments/assets/e837b24e-50c6-4ddb-ad06-d5084920b424" /> <img width="300" src="https://github.com/user-attachments/assets/fd61a1cb-ef51-4654-9a50-4154694de57e" /> <img width="300" src="https://github.com/user-attachments/assets/806c129c-d874-4c06-b2a1-1f9b5fc7307f" />
+<img width="300" src="https://github.com/user-attachments/assets/58104fbd-35e7-40a1-be8d-ad18945acacb" />
+<img width="300" src="https://github.com/user-attachments/assets/86c95b28-74db-44d3-8599-910d24adee55" />
+<img width="300" src="https://github.com/user-attachments/assets/f599b6a8-946d-492a-a423-c2805fb22c4c" />
+<img width="300" src="https://github.com/user-attachments/assets/066f3f92-9671-48cf-8383-9a55d1bf0ef7" />
+<img width="300" src="https://github.com/user-attachments/assets/e837b24e-50c6-4ddb-ad06-d5084920b424" />
+<img width="300" src="https://github.com/user-attachments/assets/fd61a1cb-ef51-4654-9a50-4154694de57e" />
+<img width="300" src="https://github.com/user-attachments/assets/4cd02da9-bf8f-4e5e-9b4b-2423787ded0d" />
 
 ## Performance
 
