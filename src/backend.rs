@@ -1,6 +1,6 @@
 use crate::line::Line;
 use crate::utils::{color_to_hsla, coord_to_point};
-use gpui::{point, px, App, Bounds, Pixels, SharedString, TextRun, Window};
+use gpui::{bounds, fill, point, px, App, Bounds, Pixels, SharedString, Size, TextRun, Window};
 use plotters_backend::{
     text_anchor::{HPos, VPos},
     BackendColor, BackendCoord, BackendStyle, BackendTextStyle, DrawingBackend, DrawingErrorKind,
@@ -41,7 +41,14 @@ impl DrawingBackend for GpuiBackend<'_> {
         point: BackendCoord,
         color: BackendColor,
     ) -> Result<(), DrawingErrorKind<Self::ErrorType>> {
-        self.draw_path([point, point], &color)
+        let color = color_to_hsla(color);
+        let point = coord_to_point(self.bounds.origin, point);
+        let size = Size::new(Pixels(1.0), Pixels(1.0));
+        let bounds = bounds(point, size);
+        let quad = fill(bounds, color);
+        self.window.paint_quad(quad);
+
+        Ok(())
     }
 
     fn draw_line<S: BackendStyle>(
